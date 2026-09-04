@@ -35,7 +35,7 @@ class _ZaynixAuthState extends State<ZaynixAuth> {
   bool _loading = false;
 
   // ⚠️ TEMPELKAN LINK URL RAW GIST/PASTEBIN ANDA DI SINI
-  final String _url = "https://githubusercontent.com";
+  final String _url = "https://raw.githubusercontent.com/ZaynixRakz/Andro-Test/refs/heads/main/keys.json";
 
   @override
   void initState() { super.initState(); _getIp(); }
