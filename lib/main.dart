@@ -30,55 +30,51 @@ class ZaynixAuth extends StatefulWidget {
 
 class _ZaynixAuthState extends State<ZaynixAuth> {
   final TextEditingController _ctrl = TextEditingController();
-  String _msg = "SISTEM PROTEKSI TELEMETRY ZAYNIX";
+  String _msg = "SISTEM PROTEKSI ZAYNIX FORSAKEN";
   String _ip = "Loading IP...";
   bool _loading = false;
 
-  // ⚠️ TEMPELKAN LINK URL RAW GIST ANDA YANG DIAMBIL DARI TAHAP 2 DI SINI
-  final String _url = "https://raw.githubusercontent.com/ZaynixRakz/Andro-Test/refs/heads/main/keys.json";
+  // ⚠️ TEMPELKAN LINK URL RAW GIST/PASTEBIN ANDA DI SINI
+  final String _url = "https://githubusercontent.com";
 
   @override
   void initState() { super.initState(); _getIp(); }
   
-    Future<void> _fetchUserIp() async {
+  Future<void> _getIp() async {
     try {
-      // Mengganti ke server Cloudflare yang jauh lebih stabil dan anti-error HTML
       final res = await http.get(Uri.parse('https://1.1.1'));
       if (res.statusCode == 200) {
-        // Logika untuk menyaring teks agar hanya mengambil angka IP-nya saja
         final lines = res.body.split('\n');
         final ipLine = lines.firstWhere((line) => line.startsWith('ip='), orElse: () => '');
         if (ipLine.isNotEmpty) {
-          setState(() => _userIpAddress = ipLine.substring(3).trim());
+          setState(() => _ip = ipLine.substring(3).trim());
           return;
         }
       }
     } catch (_) {}
-    
-    // Jika internet pembeli sedang lag/mati, otomatis diarahkan ke IP lokal agar tidak error
-    setState(() => _userIpAddress = "127.0.0.1 (Offline Mode)");
+    setState(() => _ip = "127.0.0.1 (Offline Mode)");
   }
 
   String _getHWID() => "HWID-${Platform.localHostname.hashCode.abs().toString().substring(0, 6)}";
 
   Future<void> _check() async {
     String key = _ctrl.text.trim();
-    if (key.isEmpty) { setState(() => _msg = "❌ Kunci lisensi tidak boleh kosong!"); return; }
-    setState(() { _loading = true; _msg = "Sinkronisasi HWID & IP Terhadap Cloud..."; });
+    if (key.isEmpty) { setState(() => _msg = "❌ Key tidak boleh kosong!"); return; }
+    setState(() { _loading = true; _msg = "Sinkronisasi HWID Terhadap Server..."; });
     try {
       final res = await http.get(Uri.parse(_url));
       if (res.statusCode == 200) {
         Map<String, dynamic> db = json.decode(res.body);
         if (db.containsKey(key)) {
           var data = db[key];
-          if (data["status"] != "Active") { setState(() => _msg = "❌ EXPIRED/BANNED: Akses lisensi dicabut!"); return; }
+          if (data["status"] != "Active") { setState(() => _msg = "❌ STATUS EXPIRED: Key telah hangus!"); return; }
           if (data["duration"] != "FREE" && data["hwid"] != "" && data["hwid"] != _getHWID()) {
-            setState(() => _msg = "❌ DEVICE LOCKED: Key terikat di perangkat lain!"); return;
+            setState(() => _msg = "❌ DEVICE LOCKED: Key ini terkunci di HP lain!"); return;
           }
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => ZaynixHome(type: data["duration"], ip: _ip)));
-        } else { setState(() => _msg = "❌ INVALID: Key tidak terdaftar di server!"); }
-      } else { setState(() => _msg = "❌ SERVER ERROR: Gagal memuat database."); }
-    } catch (_) { setState(() => _msg = "❌ NETWORK ERROR: Periksa koneksi internet."); }
+        } else { setState(() => _msg = "❌ INVALID: Key tidak ditemukan di server!"); }
+      } else { setState(() => _msg = "❌ SERVER ERROR: Gagal membaca database."); }
+    } catch (_) { setState(() => _msg = "❌ NETWORK ERROR: Periksa jaringan internet."); }
     finally { setState(() => _loading = false); }
   }
 
@@ -90,20 +86,16 @@ class _ZaynixAuthState extends State<ZaynixAuth> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFF00F2FE), width: 2), boxShadow: [BoxShadow(color: const Color(0xFF00F2FE).withOpacity(0.2), blurRadius: 15)]),
-              child: const Icon(Icons.shield_rounded, size: 50, color: Color(0xFF00F2FE)),
-            ),
-            const SizedBox(height: 15),
-            const Text('ZAYNIX FORSAKEN', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF00F2FE))),
-            Text("HWID: ${_getHWID()} | IP: $_ip", style: const TextStyle(color: Colors.grey, fontSize: 11)),
+            const Icon(Icons.shield_rounded, size: 50, color: Color(0xFF00F2FE)),
+            const SizedBox(height: 10),
+            const Text('ZAYNIX FORSAKEN', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF00F2FE))),
+            Text("ID: ${_getHWID()} | IP: $_ip", style: const TextStyle(color: Colors.grey, fontSize: 11)),
             const SizedBox(height: 15),
             Text(_msg, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey, fontSize: 12)),
             const SizedBox(height: 20),
-            TextField(controller: _ctrl, decoration: const InputDecoration(hintText: 'Masukkan Serial Key Premium...', fillColor: Color(0xFF0B0D16), filled: true)),
-            const SizedBox(height: 20),
-            ElevatedButton(style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50), backgroundColor: const Color(0xFF00F2FE)), onPressed: _loading ? null : _check, child: _loading ? const CircularProgressIndicator(color: Colors.black) : const Text('VERIFIKASI AKSES LISENSI', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
+            TextField(controller: _ctrl, decoration: const InputDecoration(hintText: 'Masukkan Serial Key Anda...', fillColor: Color(0xFF0B0D16), filled: true)),
+            const SizedBox(height: 15),
+            ElevatedButton(onPressed: _loading ? null : _check, child: _loading ? const CircularProgressIndicator() : const Text('VERIFIKASI AKSES SYSTEM')),
           ],
         ),
       ),
