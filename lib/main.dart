@@ -217,7 +217,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
         ],
       ),
       body: IndexedStack(index: _tab, children: [
-             Padding(padding: const EdgeInsets.all(16), child: Column(children: [
+              Padding(padding: const EdgeInsets.all(16), child: Column(children: [
           Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF04181E), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF00F2FE)), boxShadow: [BoxShadow(color: const Color(0xFF00F2FE).withOpacity(0.15), blurRadius: 15)]), 
           child: Column(
             children: [
@@ -232,7 +232,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
           _buildGlowInfoCard('Telemetry Connected IP', widget.ip, Icons.location_on),
           _buildGlowInfoCard('License Status', 'Multi-Device Share Lock Active [${widget.type}]', Icons.lock_outline)
         ])),
-           ListView(padding: const EdgeInsets.all(16), children: [
+                ListView(padding: const EdgeInsets.all(16), children: [
           _buildGlowSwitchCard('Dynamic Sensitivity', 'Sensitiviy', 'Can set higher sensitivity for fast screen movements.', _sens, (v) => setState(() => _sens = v)),
           _buildGlowSwitchCard('AimDrag Path', 'AimDrag', 'The function of AimDrag Path is to help users direct objects.', _aim, (v) => setState(() { _aim = v; if(v){ _sens = true; _recoil = true; _easy = true; } })),
           if (_aim) Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: Row(children: [const Text('TacixSen  '), Expanded(child: Slider(value: _vSlider, activeColor: const Color(0xFF00F2FE), onChanged: (v) => setState(() => _vSlider = v))), Text('${_vSlider.toStringAsFixed(1)}F')])),
@@ -250,7 +250,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
           _buildGlowSwitchCard('Compact Aim', 'Sync', 'Density aims to the neck for Easier with precise Smoothness.', _compact, (v) => setState(() => _compact = v)),
           _buildGlowSwitchCard('Rog Monitoring', 'Monitor', 'Features that can display battery performance, CPU temp.', _rog, (v) => setState(() => _rog = v)),
         ]),
-                      ListView(padding: const EdgeInsets.all(16), children: [
+                ListView(padding: const EdgeInsets.all(16), children: [
           _buildGlowGameCard('Garena Free Fire Standard', 'com.dts.freefireth', Colors.orange, _ff, (v) {
             setState(() => _ff = v); if (v == true) { _openFreeFireGame('com.dts.freefireth'); }
           }),
@@ -279,7 +279,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.between,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,7 +299,8 @@ class _ZaynixHomeState extends State<ZaynixHome> {
     );
   }
 
-  Widget _buildGlowGridCard(String title, String tag, String desc, bool state, ValueChanged<bool> onChange) => Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFF0F111E), borderRadius: BorderRadius.circular(12), border: Border.all(color: state ? const Color(0xFF00F2FE) : Colors.grey.withOpacity(0.1))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.3)), Container(padding: const EdgeInsets.all(4), color: const Color(0xFF04181E), child: Text(tag, style: const TextStyle(color: Color(0xFF00F2FE), fontSize: 9)))]), Text(desc, style: const TextStyle(fontSize: 11, color: Colors.grey)), Align(alignment: Alignment.bottomRight, child: Switch(value: state, activeColor: const Color(0xFF00F2FE), onChanged: onChange))]));
+      Widget _buildGlowGridCard(String title, String tag, String desc, bool state, ValueChanged<bool> onChange) => Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFF0F111E), borderRadius: BorderRadius.circular(12), border: Border.all(color: state ? const Color(0xFF00F2FE) : Colors.grey.withOpacity(0.1))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.3)), Container(padding: const EdgeInsets.all(4), color: const Color(0xFF04181E), child: Text(tag, style: const TextStyle(color: Color(0xFF00F2FE), fontSize: 9)))]), Text(desc, style: const TextStyle(fontSize: 11, color: Colors.grey)), Align(alignment: Alignment.bottomRight, child: Switch(value: state, activeColor: const Color(0xFF00F2FE), onChanged: onChange))]));
+
 
   Widget _buildGlowGameCard(String title, String pkg, Color color, bool state, ValueChanged<bool> onChange) {
     return Container(
@@ -312,7 +313,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.between, 
+            mainAxisAlignment: MainAxisAlignment.spaceBetween, 
             children: [
               Row(
                 children: [
