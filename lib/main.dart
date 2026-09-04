@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:device_apps/device_apps.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -34,7 +34,7 @@ class _ZaynixAuthState extends State<ZaynixAuth> {
   String _ip = "Menghubungkan...";
   bool _loading = false;
 
-  final String _url = "https://raw.githubusercontent.com/ZaynixRakz/Andro-Test/refs/heads/main/keys.json";
+  final String _url = "https://githubusercontent.com";
 
   @override
   void initState() { super.initState(); _getIp(); _checkSavedKey(); }
@@ -101,7 +101,7 @@ class _ZaynixAuthState extends State<ZaynixAuth> {
       } else { setState(() => _msg = "❌ Gagal membaca database cloud."); }
     } catch (_) { setState(() => _msg = "❌ Periksa jaringan internet Anda."); }
     finally { setState(() => _loading = false); }
-  }
+    }
     @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,7 +150,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
       title: Text(title, style: const TextStyle(color: Color(0xFF00F2FE))),
       content: isDpi ? TextField(controller: c1, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Masukkan nilai DPI Virtual'))
                      : Column(mainAxisSize: MainAxisSize.min, children: [TextField(controller: c1, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Lebar (Width)')), TextField(controller: c2, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Tinggi (Height)'))]),
-      actions: [TextButton(onPressed: () {
+            actions: [TextButton(onPressed: () {
         setState(() {
           if (isDpi) { _vDpi = int.tryParse(c1.text) ?? _vDpi; _dpi = true; }
           else { _w = int.tryParse(c1.text) ?? _w; _h = int.tryParse(c2.text) ?? _h; _res = true; }
@@ -159,15 +159,16 @@ class _ZaynixHomeState extends State<ZaynixHome> {
       }, child: const Text('Terapkan', style: TextStyle(color: Color(0xFF00F2FE))))],
     ));
   }
-    Future<void> _openFreeFireGame(String bundleId) async {
-    bool isInstalled = await DeviceApps.isAppInstalled(bundleId);
-    if (isInstalled) { DeviceApps.openApp(bundleId); } 
-    else {
+
+  Future<void> _openFreeFireGame(String bundleId) async {
+    bool isInstalled = await InstalledApps.isAppInstalled(bundleId);
+    if (isInstalled) { 
+      InstalledApps.startApp(bundleId); 
+    } else {
       showDialog(context: context, builder: (c) => AlertDialog(backgroundColor: const Color(0xFF0B0D16), title: const Text('Target Not Found', style: TextStyle(color: Colors.redAccent)), content: Text('Game $bundleId tidak terpasang di HP ini!'), actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('OK'))]));
     }
   }
-
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -182,7 +183,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
           })
         ],
       ),
-      body: IndexedStack(index: _tab, children: [
+            body: IndexedStack(index: _tab, children: [
         Padding(padding: const EdgeInsets.all(16), child: Column(children: [
           Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF04181E), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF00F2FE)), boxShadow: [BoxShadow(color: const Color(0xFF00F2FE).withOpacity(0.15), blurRadius: 15)]), child: Column(children: const [
             Text('84.6 GIPS', style: TextStyle(color: Color(0xFF00F2FE), fontWeight: FontWeight.bold, fontSize: 18)),
@@ -202,7 +203,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
           _buildGlowSwitchCard('Recoil Controller', '14,5kb', 'Controller', 'Mengurangi guncangan sebaran peluru.', _recoil, (v) => setState(() => _recoil = v)),
           _buildGlowSwitchCard('EasyDrag', '20,1kb', 'Function', 'To make it easier for users to slide or drag objects.', _easy, (v) => setState(() => _easy = v)),
         ]),
-        ListView(padding: const EdgeInsets.all(16), children: [
+                 ListView(padding: const EdgeInsets.all(16), children: [
           GridView.count(crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.85, children: [
             GestureDetector(onTap: () => _dialogInput('Set DPI Virtual', true), child: _buildGlowGridCard('DPI-Manager', 'DPI', _dpi ? 'Active: $_vDpi vDPI' : 'Automatically change the DPI settings.', _dpi, (v) { if (v) _dialogInput('Set DPI Virtual', true); else setState(() => _dpi = false); })),
             GestureDetector(onTap: () => _dialogInput('Set Resolusi Virtual', false), child: _buildGlowGridCard('Resolusi Manager', 'libs', _res ? 'Active: ${_w}x$_h' : 'Automatically change the RESOLUSI settings.', _res, (v) { if (v) _dialogInput('Set Resolusi Virtual', false); else setState(() => _res = false); })),
@@ -226,7 +227,8 @@ class _ZaynixHomeState extends State<ZaynixHome> {
       bottomNavigationBar: BottomNavigationBar(currentIndex: _tab, onTap: (i) => setState(() => _tab = i), type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF07090F), selectedItemColor: const Color(0xFF00F2FE), unselectedItemColor: Colors.grey.withOpacity(0.4), items: const [BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'), BottomNavigationBarItem(icon: Icon(Icons.construction_rounded), label: 'ToolsX'), BottomNavigationBarItem(icon: Icon(Icons.settings_suggest_rounded), label: 'SettingsX'), BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Features')]),
     );
   }
-    Widget _buildGlowInfoCard(String title, String sub, IconData i, {Color color = const Color(0xFF00F2FE)}) => Container(margin: const EdgeInsets.bottom(10), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFF0F111E), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey.withOpacity(0.1))), child: Row(children: [Icon(i, color: color), const SizedBox(width: 14), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(color: Colors.grey, fontSize: 11)), Text(sub, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))]))]));
+
+  Widget _buildGlowInfoCard(String title, String sub, IconData i, {Color color = const Color(0xFF00F2FE)}) => Container(margin: const EdgeInsets.bottom(10), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFF0F111E), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey.withOpacity(0.1))), child: Row(children: [Icon(i, color: color), const SizedBox(width: 14), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(color: Colors.grey, fontSize: 11)), Text(sub, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))]))]));
 
   Widget _buildGlowSwitchCard(String title, String size, String tag, String desc, bool state, ValueChanged<bool> onChange) => Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -272,4 +274,5 @@ class _ZaynixHomeState extends State<ZaynixHome> {
 
   Widget _buildGlowGridCard(String title, String tag, String desc, bool state, ValueChanged<bool> onChange) => Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFF0F111E), borderRadius: BorderRadius.circular(12), border: Border.all(color: state ? const Color(0xFF00F2FE) : Colors.grey.withOpacity(0.1))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)), Container(padding: const EdgeInsets.all(4), color: const Color(0xFF04181E), child: Text(tag, style: const TextStyle(color: Color(0xFF00F2FE), fontSize: 9)))]), Text(desc, style: const TextStyle(fontSize: 11, color: Colors.grey)), Align(alignment: Alignment.bottomRight, child: Switch(value: state, activeColor: const Color(0xFF00F2FE), onChanged: onChange))]));
   Widget _buildGlowGameCard(String title, String pkg, Color color, bool state, ValueChanged<bool> onChange) => Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: const Color(0xFF0F111E), borderRadius: BorderRadius.circular(12), border: Border.all(color: state ? const Color(0xFF00F2FE) : Colors.grey.withOpacity(0.1))), child: Column(children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(children: [Icon(Icons.local_fire_department, color: color), const SizedBox(width: 10), Text(title, style: const TextStyle(fontWeight: FontWeight.bold))]), Switch(value: state, activeColor: const Color(0xFF00F2FE), onChanged: onChange)]), if (state) Padding(padding: const EdgeInsets.only(top: 10.0), child: ElevatedButton.icon(style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(40), backgroundColor: const Color(0xFF2F80ED)), icon: const Icon(Icons.play_arrow_rounded, color: Colors.white), label: const Text('Launch & Inject Target Game', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), onPressed: () => _openFreeFireGame(pkg)))]);
-}
+                                                                                                                         }
+                                                                                                                         
