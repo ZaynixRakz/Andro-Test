@@ -22,12 +22,22 @@ class ZaynixApp extends StatelessWidget {
     );
   }
 }
-class ZaynixAuth extends StatefulWidget {
-  const ZaynixAuth({super.key});
+class ZaynixApp extends StatelessWidget {
+  const ZaynixApp({super.key});
   @override
-  State<ZaynixAuth> createState() => _ZaynixAuthState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Zaynix Forsaken',
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF040508),
+        cardColor: const Color(0xFF0F111E),
+        colorScheme: const ColorScheme.dark(primary: Color(0xFF00F2FE)),
+      ),
+      home: const ZaynixAuth(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
 }
-
 class _ZaynixAuthState extends State<ZaynixAuth> {
   final TextEditingController _ctrl = TextEditingController();
   String _msg = "Licensi Zaynix App"; 
@@ -53,20 +63,20 @@ class _ZaynixAuthState extends State<ZaynixAuth> {
       }
     } catch (_) {}
     setState(() => _ip = "Menghubungkan...");
-  }
+    }
+    String _getHWID() => "HWID-${Platform.localHostname.hashCode.abs().toString().substring(0, 6)}";
 
-  String _getHWID() => "HWID-${Platform.localHostname.hashCode.abs().toString().substring(0, 6)}";
-   Future<void> _check() async {
+  Future<void> _check() async {
     String key = _ctrl.text.trim();
     if (key.isEmpty) { setState(() => _msg = "❌ Key tidak boleh kosong!"); return; }
     setState(() { _loading = true; _msg = "Sinkronisasi Jaringan Cloud..."; });
-    try {
+        try {
       final res = await http.get(Uri.parse(_url));
       if (res.statusCode == 200) {
         Map<String, dynamic> db = json.decode(res.body);
         if (db.containsKey(key)) {
           var data = db[key];
-                    if (data["status"] != "Active") { 
+                   if (data["status"] != "Active") { 
             final prefs = await SharedPreferences.getInstance();
             await prefs.remove('zaynix_saved_key');
             setState(() => _msg = "❌ LISENSI KEDALUWARSA / BANNED!"); return; 
@@ -92,14 +102,14 @@ class _ZaynixAuthState extends State<ZaynixAuth> {
                 setState(() => _msg = "❌ WAKTU HABIS: Masa sewa lisensi selesai!"); return;
               }
             }
-          }
-          await prefs.setString('zaynix_saved_key', key);
+                    }
+                    await prefs.setString('zaynix_saved_key', key);
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => ZaynixHome(type: data["duration"], ip: _ip)));
         } else { setState(() => _msg = "❌ Key tidak terdaftar di server!"); }
       } else { setState(() => _msg = "❌ Gagal membaca database cloud."); }
     } catch (_) { setState(() => _msg = "❌ Periksa jaringan internet Anda."); }
     finally { setState(() => _loading = false); }
-   }
+  }
     @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,12 +123,12 @@ class _ZaynixAuthState extends State<ZaynixAuth> {
               decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFF00F2FE), width: 2), boxShadow: [BoxShadow(color: const Color(0xFF00F2FE).withOpacity(0.2), blurRadius: 20)]),
               child: const Icon(Icons.shield_rounded, size: 55, color: Color(0xFF00F2FE)),
             ),
-            const SizedBox(height: 25),
+                        const SizedBox(height: 25),
             const Text('ZAYNIX FORSAKEN', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF00F2FE))),
             const SizedBox(height: 8),
             Text(_msg, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 35),
-            TextField(controller: _ctrl, decoration: InputDecoration(hintText: 'Masukkan Serial Key Anda...', prefixIcon: const Icon(Icons.vpn_key_rounded, color: Color(0xFF00F2FE), size: 20), fillColor: const Color(0xFF0F111E), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none))),
+            const SizedBox(height: 35),
+                        TextField(controller: _ctrl, decoration: InputDecoration(hintText: 'Masukkan Serial Key Anda...', prefixIcon: const Icon(Icons.vpn_key_rounded, color: Color(0xFF00F2FE), size: 20), fillColor: const Color(0xFF0F111E), filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none))),
             const SizedBox(height: 20),
             ElevatedButton(style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: const Color(0xFF00F2FE)), onPressed: _loading ? null : _check, child: _loading ? const CircularProgressIndicator(color: Colors.black) : const Text('LOGIN', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
           ],
@@ -133,7 +143,6 @@ class ZaynixHome extends StatefulWidget {
   @override
   State<ZaynixHome> createState() => _ZaynixHomeState();
 }
-
 class _ZaynixHomeState extends State<ZaynixHome> {
   int _tab = 0;
   bool _aim = false, _recoil = false, _easy = false, _sens = false, _dpi = false, _res = false, _opt = false, _ff = false, _ffMax = false;
@@ -147,7 +156,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
       title: Text(title, style: const TextStyle(color: Color(0xFF00F2FE))),
       content: isDpi ? TextField(controller: c1, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Masukkan nilai DPI Virtual'))
                      : Column(mainAxisSize: MainAxisSize.min, children: [TextField(controller: c1, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Lebar (Width)')), TextField(controller: c2, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Tinggi (Height)'))]),
-      actions: [TextButton(onPressed: () {
+            actions: [TextButton(onPressed: () {
         setState(() {
           if (isDpi) { _vDpi = int.tryParse(c1.text) ?? _vDpi; _dpi = true; }
           else { _w = int.tryParse(c1.text) ?? _w; _h = int.tryParse(c2.text) ?? _h; _res = true; }
@@ -199,7 +208,7 @@ class _ZaynixHomeState extends State<ZaynixHome> {
           _buildGlowSwitchCard('Recoil Controller', '14,5kb', 'Controller', 'Mengurangi guncangan sebaran peluru.', _recoil, (v) => setState(() => _recoil = v)),
           _buildGlowSwitchCard('EasyDrag', '20,1kb', 'Function', 'To make it easier for users to slide or drag objects.', _easy, (v) => setState(() => _easy = v)),
         ]),
-        ListView(padding: const EdgeInsets.all(16), children: [
+                      ListView(padding: const EdgeInsets.all(16), children: [
           GridView.count(crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.85, children: [
             GestureDetector(onTap: () => _dialogInput('Set DPI Virtual', true), child: _buildGlowGridCard('DPI-Manager', 'DPI', _dpi ? 'Active: $_vDpi vDPI' : 'Automatically change the DPI settings.', _dpi, (v) { if (v) _dialogInput('Set DPI Virtual', true); else setState(() => _dpi = false); })),
             GestureDetector(onTap: () => _dialogInput('Set Resolusi Virtual', false), child: _buildGlowGridCard('Resolusi Manager', 'libs', _res ? 'Active: ${_w}x$_h' : 'Automatically change the RESOLUSI settings.', _res, (v) { if (v) _dialogInput('Set Resolusi Virtual', false); else setState(() => _res = false); })),
