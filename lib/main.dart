@@ -40,11 +40,23 @@ class _ZaynixAuthState extends State<ZaynixAuth> {
   @override
   void initState() { super.initState(); _getIp(); }
   
-  Future<void> _getIp() async {
+    Future<void> _fetchUserIp() async {
     try {
-      final res = await http.get(Uri.parse('https://ipify.org'));
-      if (res.statusCode == 200) setState(() => _ip = res.body.trim());
-    } catch (_) { setState(() => _ip = "127.0.0.1"); }
+      // Mengganti ke server Cloudflare yang jauh lebih stabil dan anti-error HTML
+      final res = await http.get(Uri.parse('https://1.1.1'));
+      if (res.statusCode == 200) {
+        // Logika untuk menyaring teks agar hanya mengambil angka IP-nya saja
+        final lines = res.body.split('\n');
+        final ipLine = lines.firstWhere((line) => line.startsWith('ip='), orElse: () => '');
+        if (ipLine.isNotEmpty) {
+          setState(() => _userIpAddress = ipLine.substring(3).trim());
+          return;
+        }
+      }
+    } catch (_) {}
+    
+    // Jika internet pembeli sedang lag/mati, otomatis diarahkan ke IP lokal agar tidak error
+    setState(() => _userIpAddress = "127.0.0.1 (Offline Mode)");
   }
 
   String _getHWID() => "HWID-${Platform.localHostname.hashCode.abs().toString().substring(0, 6)}";
