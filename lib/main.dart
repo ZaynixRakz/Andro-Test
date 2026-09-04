@@ -1,156 +1,155 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
 
-void main() {
-  runApp(const ZaynixFilesApp());
-}
+void main() => runApp(const ZaynixApp());
 
-class ZaynixFilesApp extends StatelessWidget {
-  const ZaynixFilesApp({super.key});
-
+class ZaynixApp extends StatelessWidget {
+  const ZaynixApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Zaynix Files',
+      title: 'Zaynix Forsaken',
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF08090E), 
-        cardColor: const Color(0xFF11131F),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF2F80ED), 
-          secondary: Color(0xFF00F2FE), 
-          surface: Color(0xFF11131F),
-        ),
+        scaffoldBackgroundColor: const Color(0xFF030407),
+        cardColor: const Color(0xFF0B0D16),
+        colorScheme: const ColorScheme.dark(primary: Color(0xFF00F2FE)),
       ),
-      home: const ZaynixMainWorkspace(),
+      home: const ZaynixAuth(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class ZaynixMainWorkspace extends StatefulWidget {
-  const ZaynixMainWorkspace({super.key});
+class ZaynixAuth extends StatefulWidget {
+  const ZaynixAuth({super.key});
   @override
-  State<ZaynixMainWorkspace> createState() => _ZaynixMainWorkspaceState();
+  State<ZaynixAuth> createState() => _ZaynixAuthState();
 }
 
-class _ZaynixMainWorkspaceState extends State<ZaynixMainWorkspace> {
-  int _selectedIndex = 0;
-  bool _isShizukuActive = false; 
+class _ZaynixAuthState extends State<ZaynixAuth> {
+  final TextEditingController _ctrl = TextEditingController();
+  String _msg = "SISTEM PROTEKSI TELEMETRY ZAYNIX";
+  String _ip = "Loading IP...";
+  bool _loading = false;
+
+  // ⚠️ TEMPELKAN LINK URL RAW GIST ANDA YANG DIAMBIL DARI TAHAP 2 DI SINI
+  final String _url = "https://raw.githubusercontent.com/ZaynixRakz/Andro-Test/refs/heads/main/keys.json";
+
+  @override
+  void initState() { super.initState(); _getIp(); }
+  
+  Future<void> _getIp() async {
+    try {
+      final res = await http.get(Uri.parse('https://ipify.org'));
+      if (res.statusCode == 200) setState(() => _ip = res.body.trim());
+    } catch (_) { setState(() => _ip = "127.0.0.1"); }
+  }
+
+  String _getHWID() => "HWID-${Platform.localHostname.hashCode.abs().toString().substring(0, 6)}";
+
+  Future<void> _check() async {
+    String key = _ctrl.text.trim();
+    if (key.isEmpty) { setState(() => _msg = "❌ Kunci lisensi tidak boleh kosong!"); return; }
+    setState(() { _loading = true; _msg = "Sinkronisasi HWID & IP Terhadap Cloud..."; });
+    try {
+      final res = await http.get(Uri.parse(_url));
+      if (res.statusCode == 200) {
+        Map<String, dynamic> db = json.decode(res.body);
+        if (db.containsKey(key)) {
+          var data = db[key];
+          if (data["status"] != "Active") { setState(() => _msg = "❌ EXPIRED/BANNED: Akses lisensi dicabut!"); return; }
+          if (data["duration"] != "FREE" && data["hwid"] != "" && data["hwid"] != _getHWID()) {
+            setState(() => _msg = "❌ DEVICE LOCKED: Key terikat di perangkat lain!"); return;
+          }
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => ZaynixHome(type: data["duration"], ip: _ip)));
+        } else { setState(() => _msg = "❌ INVALID: Key tidak terdaftar di server!"); }
+      } else { setState(() => _msg = "❌ SERVER ERROR: Gagal memuat database."); }
+    } catch (_) { setState(() => _msg = "❌ NETWORK ERROR: Periksa koneksi internet."); }
+    finally { setState(() => _loading = false); }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      ZaynixHomeTab(
-        isShizukuActive: _isShizukuActive,
-        onShizukuConnect: () => setState(() => _isShizukuActive = true),
-      ),
-      ZaynixInjectTab(isShizukuActive: _isShizukuActive),
-      const Center(child: Text('Zaynix Cloud Packages Empty', style: TextStyle(color: Colors.grey))),
-      const Center(child: Text('Terminal Security Active', style: TextStyle(color: Colors.grey))),
-    ];
-
     return Scaffold(
-      body: SafeArea(child: pages[_selectedIndex]),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF0D0F18),
-        selectedItemColor: const Color(0xFF00F2FE),
-        unselectedItemColor: Colors.grey.withOpacity(0.6),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.layers_outlined), label: 'Workspace'),
-          BottomNavigationBarItem(icon: Icon(Icons.folder_copy_outlined), label: 'Packages'),
-          BottomNavigationBarItem(icon: Icon(Icons.tune_rounded), label: 'Terminal'),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFF00F2FE), width: 2), boxShadow: [BoxShadow(color: const Color(0xFF00F2FE).withOpacity(0.2), blurRadius: 15)]),
+              child: const Icon(Icons.shield_rounded, size: 50, color: Color(0xFF00F2FE)),
+            ),
+            const SizedBox(height: 15),
+            const Text('ZAYNIX FORSAKEN', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF00F2FE))),
+            Text("HWID: ${_getHWID()} | IP: $_ip", style: const TextStyle(color: Colors.grey, fontSize: 11)),
+            const SizedBox(height: 15),
+            Text(_msg, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            const SizedBox(height: 20),
+            TextField(controller: _ctrl, decoration: const InputDecoration(hintText: 'Masukkan Serial Key Premium...', fillColor: Color(0xFF0B0D16), filled: true)),
+            const SizedBox(height: 20),
+            ElevatedButton(style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50), backgroundColor: const Color(0xFF00F2FE)), onPressed: _loading ? null : _check, child: _loading ? const CircularProgressIndicator(color: Colors.black) : const Text('VERIFIKASI AKSES LISENSI', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
+          ],
+        ),
       ),
     );
   }
 }
-
-class ZaynixHomeTab extends StatelessWidget {
-  final bool isShizukuActive;
-  final VoidCallback onShizukuConnect;
-  const ZaynixHomeTab({super.key, required this.isShizukuActive, required this.onShizukuConnect});
-
+class ZaynixHome extends StatefulWidget {
+  final String type; final String ip;
+  const ZaynixHome({super.key, required this.type, required this.ip});
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('CORE ENVIRONMENT', style: TextStyle(color: Color(0xFF2F80ED), letterSpacing: 2, fontSize: 10, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          const Text('Zaynix Files', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 25),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0D0F18),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isShizukuActive ? const Color(0xFF1F2235) : Colors.red.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(radius: 5, backgroundColor: isShizukuActive ? const Color(0xFF00E676) : Colors.redAccent),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(isShizukuActive ? 'Access Bridge Active' : 'Access Bridge Restricted', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(isShizukuActive ? 'Otoritas sistem berhasil diverifikasi.' : 'Layanan eksternal belum diaktifkan.', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          if (!isShizukuActive)
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50), backgroundColor: const Color(0xFF2F80ED)),
-              onPressed: onShizukuConnect, 
-              child: const Text('Inisialisasi Akses Zaynix', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-        ],
-      ),
-    );
-  }
+  State<ZaynixHome> createState() => _ZaynixHomeState();
 }
 
-class ZaynixInjectTab extends StatelessWidget {
-  final bool isShizukuActive;
-  const ZaynixInjectTab({super.key, required this.isShizukuActive});
-  @override
+class _ZaynixHomeState extends State<ZaynixHome> {
+  int _tab = 0;
+  bool _aim = false, _recoil = false, _easy = false, _sens = false, _dpi = false, _res = false, _opt = false, _ff = false, _ffMax = false;
+  double _vSlider = 0.5; int _vDpi = 360, _w = 1080, _h = 2400;
+
+  void _dialogInput(String title, bool isDpi) {
+    TextEditingController c1 = TextEditingController();
+    TextEditingController c2 = TextEditingController();
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      backgroundColor: const Color(0xFF0B0D16),
+      title: Text(title, style: const TextStyle(color: Color(0xFF00F2FE))),
+      content: isDpi ? TextField(controller: c1, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Masukkan nilai DPI Virtual'))
+                     : Column(mainAxisSize: MainAxisSize.min, children: [TextField(controller: c1, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Lebar (Width)')), TextField(controller: c2, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Tinggi (Height)'))]),
+      actions: [TextButton(onPressed: () {
+        setState(() {
+          if (isDpi) { _vDpi = int.tryParse(c1.text) ?? _vDpi; _dpi = true; }
+          else { _w = int.tryParse(c1.text) ?? _w; _h = int.tryParse(c2.text) ?? _h; _res = true; }
+        });
+        Navigator.pop(ctx);
+      }, child: const Text('Terapkan', style: TextStyle(color: Color(0xFF00F2FE))))],
+    ));
+  }
+    @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('WORKSPACE TARGET', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 20),
-          if (!isShizukuActive)
-            const Expanded(child: Center(child: Text('Workspace Terkunci. Aktifkan Shizuku di Dashboard.', style: TextStyle(color: Colors.grey))))
-          else ...[
-            ListTile(
-              tileColor: const Color(0xFF11131F),
-              leading: const Icon(Icons.gamepad_rounded, color: Colors.orangeAccent),
-              title: const Text('Free Fire Standard'),
-              subtitle: const Text('com.dts.freefireth'),
-            ),
-            const SizedBox(height: 10),
-            ListTile(
-              tileColor: const Color(0xFF11131F),
-              leading: const Icon(Icons.gamepad_rounded, color: Colors.purpleAccent),
-              title: const Text('Free Fire MAX'),
-              subtitle: const Text('com.dts.freefiremax'),
-            ),
-          ]
-        ],
-      ),
+    return Scaffold(
+      appBar: AppBar(backgroundColor: const Color(0xFF07090F), title: Text('ZAYNIX - RANK: ${widget.type}'), actions: [IconButton(icon: const Icon(Icons.terminal, color: Color(0xFF00F2FE)), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => Scaffold(backgroundColor: const Color(0xFF030508), appBar: AppBar(title: const Text('FORSAKEN COMMAND SHELL')), body: const Center(child: Text('[INFO] Zaynix Terminal Shell Online.', style: TextStyle(color: Colors.green, fontFamily: 'monospace')))))))]),
+      body: IndexedStack(index: _tab, children: [
+        Padding(padding: const EdgeInsets.all(16), child: Column(children: [Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF04181E), border: Border.all(color: const Color(0xFF00F2FE)), boxShadow: [BoxShadow(color: const Color(0xFF00F2FE).withOpacity(0.1), blurRadius: 10)]), child: const Center(child: Text('84.6 GIPS | CYBER CORE ENVIRONMENT', style: TextStyle(color: Color(0xFF00F2FE), fontWeight: FontWeight.bold)))), ListTile(title: const Text('Telemetry Connected IP'), subtitle: Text(widget.ip)), ListTile(title: const Text('Device Security Status'), subtitle: const Text('Secure Multi-Device Anti-Share Guard Active'))])),
+        ListView(padding: const EdgeInsets.all(16), children: [
+          SwitchListTile(title: const Text('Dynamic Sensitivity'), value: _sens, activeColor: const Color(0xFF00F2FE), onChanged: (v) => setState(() => _sens = v)),
+          SwitchListTile(title: const Text('AimDrag Path'), subtitle: const Text('Otomatis mengaktifkan fitur pendukung saat ON'), value: _aim, activeColor: const Color(0xFF00F2FE), onChanged: (v) => setState(() { _aim = v; if(v){ _sens = true; _recoil = true; _easy = true; } })),
+          if (_aim) Slider(value: _vSlider, activeColor: const Color(0xFF00F2FE), onChanged: (v) => setState(() => _vSlider = v)),
+          SwitchListTile(title: const Text('Recoil Controller'), value: _recoil, activeColor: const Color(0xFF00F2FE), onChanged: (v) => setState(() => _recoil = v)),
+        ]),
+        ListView(padding: const EdgeInsets.all(16), children: [
+          ListTile(title: const Text('DPI Manager'), subtitle: Text(_dpi ? 'Active Virtual: $_vDpi vDPI' : 'Kelincinan Layar Kustom Tanpa Ubah DPI Asli'), onTap: () => _dialogInput('Set DPI Virtual', true)),
+          ListTile(title: const Text('Resolution Manager'), subtitle: Text(_res ? 'Active Virtual: ${_w}x$_h' : 'Rasio Resolusi Layar Virtual'), onTap: () => _dialogInput('Set Resolusi Virtual', false)),
+          SwitchListTile(title: const Text('OptimizeGo'), value: _opt, activeColor: const Color(0xFF00F2FE), onChanged: (v) => setState(() => _opt = v)),
+        ]),
+        ListView(padding: const EdgeInsets.all(16), children: [
+          SwitchListTile(secondary: const Icon(Icons.local_fire_department, color: Colors.orange), title: const Text('Garena Free Fire Standard'), value: _ff, activeColor: const Color(0xFF00F2FE), onChanged: (v) => setState(() => _ff = v)),
+          SwitchListTile(secondary: const Icon(Icons.local_fire_department, color: Colors.purple), title: const Text('Garena Free Fire MAX'), value: _ffMax, activeColor: const Color(0xFF00F2FE), onChanged: (v) => setState(() => _ffMax = v)),
+        ]),
+      ]),
+      bottomNavigationBar: BottomNavigationBar(currentIndex: _tab, onTap: (i) => setState(() => _tab = i), type: BottomNavigationBarType.fixed, selectedItemColor: const Color(0xFF00F2FE), unselectedItemColor: Colors.grey.withOpacity(0.4), items: const [BottomNavigationBarItem(icon: Icon(Icons.analytics_outlined), label: 'Dashboard'), BottomNavigationBarItem(icon: Icon(Icons.tune), label: 'ModulX'), BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'SystemX'), BottomNavigationBarItem(icon: Icon(Icons.gamepad), label: 'Executor')]),
     );
   }
 }
